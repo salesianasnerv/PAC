@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PAC · Plan Anual de Centro | Escuelas Salesianas María Auxiliadora · Nervión (Sevilla)</title>
+  <meta name="description" content="Plan Anual de Centro: cada equipo redacta sus apartados y el documento se genera maquetado en PDF y Word.">
+  <meta name="theme-color" content="#009abb">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="documento.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="sin-sesion">
+  <header class="top solo-logo">
+    <div class="marca"><img class="logo" src="logo.svg" alt="Salesianas Nervión"></div>
+  </header>
+  <div class="franja">
+    <label class="curso-sel" id="cursoSelCaja" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <span class="sr">Curso</span>
+      <select id="cursoSel"></select>
+    </label>
+    <span class="quien" id="cursoTxt">Plan Anual de Centro</span>
+    <div class="franja-acc">
+      <button type="button" class="franja-btn" id="btnPdfTodo" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>PDF completo</button>
+      <button type="button" class="franja-btn" id="btnWordTodo" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M8.5 12l1.5 6 2-4.5 2 4.5 1.5-6"/></svg>Word completo</button>
+    </div>
+  </div>
+  <div class="sesion" id="sesion" hidden>
+    <span class="sesion-nombre"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span id="usuario"></span><span class="rol-etq" id="rolEtq" hidden>Coordinación</span></span>
+    <button type="button" class="sesion-salir" id="btnSalir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></svg>Salir</button>
+  </div>
+
+  <section class="presenta" id="presenta">
+    <div class="presenta-sup"><div class="cartel" role="navigation" aria-label="Estás en"><a href="https://claustro-utilidades.vercel.app/" title="Ir al portal de utilidades del profesorado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10"/></svg>Utilidades</a><span class="sep" aria-hidden="true">|</span><a href="https://claustro-utilidades.vercel.app/#apGeneral">General</a></div></div>
+    <div class="presenta-cab">
+      <span class="presenta-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8.5 12h7M8.5 15.5h7M8.5 19h4"/></svg></span>
+      <div>
+        <h1>Plan Anual de Centro</h1>
+        <p>Cada equipo redacta sus apartados aquí, con el formato ya hecho. El documento completo (o cualquier apartado) se descarga maquetado en PDF y en Word, con índice y numeración automáticos.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="demoAviso" class="demo" hidden>
+    <strong>Modo prueba:</strong> los datos se guardan solo en este navegador.
+    <button type="button" class="enlace" id="btnReiniciar">Volver al PAC importado del Word</button>
+  </div>
+
+  <nav id="tabs" hidden>
+    <button data-ir="#/" data-vista="pac" class="activa">PAC</button>
+    <button data-ir="#/mios" data-vista="mios" id="tabMios" hidden>Mis apartados <span class="contador" id="nMios"></span></button>
+    <button data-ir="#/seguimiento" data-vista="seguimiento">Seguimiento</button>
+    <div class="menu-g" id="tabAdmin" hidden>
+      <button type="button" data-menu="admin" aria-haspopup="true" data-vista="admin">Coordinación</button>
+      <div class="desplegable">
+        <button type="button" data-ir="#/admin/indice" style="--c:#007791"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></svg>Índice y apartados</button>
+        <button type="button" data-ir="#/admin/roles" style="--c:#8a9400"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>Roles y permisos</button>
+        <button type="button" data-ir="#/admin/cursos" style="--c:#ee712a"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Cursos y portada</button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="login" id="login" hidden>
+      <div class="tarjeta">
+        <img class="logo" src="logo.svg" alt="">
+        <span class="eyebrow">Claustro</span>
+        <h1>PAC</h1>
+        <p>Entra con tu cuenta de Microsoft 365 del colegio. Todo el claustro puede leer el PAC; cada equipo edita sus apartados.</p>
+        <div id="loginReal">
+          <button class="btn primario btn-ms" id="btnLogin" type="button"><svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Entrar con Microsoft 365</button>
+        </div>
+        <div id="loginDemo" class="login-demo" hidden>
+          <p class="mini">Modo prueba: elige con qué permisos quieres probar.</p>
+          <button class="btn primario" type="button" data-demo="coordinacion.demo@salesianas.org">Coordinación (lo edita todo)</button>
+          <button class="btn" type="button" data-demo="orientacion.demo@salesianas.org">Miembro del Equipo de Orientación</button>
+          <button class="btn" type="button" data-demo="lectura.demo@salesianas.org">Profesorado (solo lectura)</button>
+        </div>
+        <p class="error" id="loginError"></p>
+      </div>
+    </section>
+
+    <div id="app" hidden>
+      <div class="vista" id="vPac">
+        <aside class="indice" id="indice">
+          <button type="button" class="indice-movil" id="btnIndiceMovil" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Índice</button>
+          <div class="indice-cuerpo">
+            <div class="buscar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="buscar" placeholder="Buscar en el PAC…" autocomplete="off"></div>
+            <div id="resultados" class="resultados" hidden></div>
+            <ol class="arbol" id="arbol"></ol>
+          </div>
+        </aside>
+        <article class="contenido" id="contenido"></article>
+      </div>
+      <div class="vista" id="vMios" hidden></div>
+      <div class="vista" id="vSeguimiento" hidden></div>
+      <div class="vista" id="vAdmin" hidden></div>
+    </div>
+  </main>
+
+  <dialog id="dialogo"><form method="dialog" class="dlg"><div id="dlgCuerpo"></div></form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="trabajando" class="trabajando" hidden><span class="spin"></span><span id="trabajandoTxt">Preparando el documento…</span></div>
+
+  <script src="config.js"></script>
+  <script>if (window.APP_CONFIG.supabaseUrl) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>');</script>
+  <script src="render.js"></script>
+  <script src="datos.js"></script>
+  <script src="app.js"></script>
+  <script src="editor.js"></script>
+  <script src="admin.js"></script>
+  <script src="word.js"></script>
+</body>
+</html>

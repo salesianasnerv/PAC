@@ -1,0 +1,56 @@
+/* ─── PAC · aspecto del contenido (igual en la web y en el PDF) ───────────────
+   Colores del manual de identidad: azul #3490b0 (Pantone 632), verde #b6bc00 (390), naranja #ee712a (172). */
+@font-face { font-family: "Fira Sans PAC"; src: url("fonts/FiraSans-Light.ttf") format("truetype"); font-weight: 300; font-style: normal; }
+@font-face { font-family: "Fira Sans PAC"; src: url("fonts/FiraSans-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "Fira Sans PAC"; src: url("fonts/FiraSans-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Fira Sans PAC"; src: url("fonts/FiraSans-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+@font-face { font-family: "Fira Sans PAC"; src: url("fonts/FiraSans-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+@font-face { font-family: "Fira Sans PAC"; src: url("fonts/FiraSans-BoldItalic.ttf") format("truetype"); font-weight: 700; font-style: italic; }
+
+.doc {
+  --d-azul: #3490b0; --d-azul-osc: #24708c; --d-verde: #b6bc00; --d-naranja: #ee712a;
+  --d-texto: #1f2a33; --d-suave: #5b6b78; --d-linea: #cfdde4; --d-cebra: #f3f8fa; --d-claro: #eaf4f8;
+  font-family: "Fira Sans PAC", "Fira Sans", system-ui, sans-serif; color: var(--d-texto);
+  font-size: 15px; line-height: 1.55; hyphens: auto; -webkit-hyphens: auto;
+}
+.doc p { margin: 0 0 .7em; text-align: justify; text-justify: inter-word; }
+.doc a { color: var(--d-azul-osc); }
+.doc b { font-weight: 700; }
+
+/* Títulos de los apartados (los pone la web: número + título) */
+.doc .ap-titulo { color: var(--d-azul); font-weight: 700; line-height: 1.2; margin: 0 0 .7em; display: flex; gap: .55em; align-items: baseline; }
+.doc .ap-titulo .num { color: var(--d-verde); font-variant-numeric: tabular-nums; flex: none; }
+.doc h2.ap-titulo { font-size: 1.75em; padding-bottom: .35em; border-bottom: 3px solid var(--d-verde); }
+.doc h3.ap-titulo { font-size: 1.3em; margin-top: 1.4em; }
+.doc h4.ap-titulo { font-size: 1.08em; margin-top: 1.2em; color: var(--d-azul-osc); }
+.doc h4.ap-titulo .num { color: var(--d-azul); opacity: .75; }
+
+/* Subtítulo dentro de un apartado (no sale en el índice) */
+.doc .subtitulo { font-size: .8em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--d-naranja);
+  margin: 1.3em 0 .55em; break-after: avoid; }
+
+.doc ul, .doc ol { margin: 0 0 .8em; padding-left: 1.5em; }
+.doc li { margin: .15em 0; }
+.doc ul > li::marker { color: var(--d-verde); }
+.doc ol > li::marker { color: var(--d-azul); font-weight: 700; }
+.doc li > ul, .doc li > ol { margin: .2em 0 .2em; }
+
+.doc .destacado { margin: .4em 0 1.2em; padding: .9em 1.2em; border-left: 4px solid var(--d-verde); background: #f6f7e3; border-radius: 0 8px 8px 0;
+  font-size: 1.12em; color: var(--d-azul-osc); }
+.doc .destacado p { margin: 0; text-align: left; }
+
+.doc figure.imagen { margin: .6em auto 1.1em; break-inside: avoid; }
+.doc figure.imagen img { display: block; width: 100%; height: auto; border-radius: 4px; }
+.doc figcaption { font-size: .82em; color: var(--d-suave); text-align: center; margin-top: .4em; font-style: italic; }
+
+/* Tablas: cabecera azul, filas alternas, sin cuadrículas gruesas */
+.doc table.tabla { width: 100%; border-collapse: collapse; margin: .5em 0 1.3em; font-size: .8em; line-height: 1.38; }
+.doc table.tabla.ancha { font-size: .74em; }
+.doc table.tabla th, .doc table.tabla td { border: 1px solid var(--d-linea); padding: .45em .55em; vertical-align: top; text-align: left; overflow-wrap: anywhere; hyphens: auto; }
+.doc table.tabla thead th { background: var(--d-azul); color: #fff; font-weight: 700; border-color: var(--d-azul); vertical-align: middle; }
+.doc table.tabla tbody tr:nth-child(even) td { background: var(--d-cebra); }
+.doc table.tabla td[rowspan] { background: var(--d-claro) !important; }
+.doc table.tabla tbody td:first-child { font-weight: 500; }
+
+.doc .salto-pagina { height: 0; border-top: 1px dashed var(--d-linea); margin: 1.2em 0; }
+.doc .vacio { color: var(--d-suave); font-style: italic; }

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PAC · documento para imprimir o guardar en PDF</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <style>
+    /* Barra de arriba (no sale en el PDF) */
+    body { margin: 0; background: #e9eef2; font-family: "Fira Sans", system-ui, sans-serif; }
+    .barra { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 16px; background: #fff; border-bottom: 2px solid #ee712a; box-shadow: 0 4px 14px -8px rgba(0,0,0,.25); }
+    .barra img { height: 34px; }
+    .barra b { color: #24708c; }
+    .barra span { color: #5b6b78; font-size: 14px; flex: 1; min-width: 200px; }
+    .barra button { font: inherit; font-weight: 700; border: 0; border-radius: 999px; padding: 9px 18px; background: #ee712a; color: #fff; cursor: pointer; }
+    .barra button:hover { background: #d35a15; }
+    .barra button[disabled] { opacity: .5; cursor: wait; }
+    .estado { text-align: center; padding: 60px 20px; color: #24708c; font-weight: 600; }
+    .estado .spin { width: 36px; height: 36px; margin: 0 auto 14px; border-radius: 50%; border: 4px solid rgba(52,144,176,.2); border-top-color: #3490b0; animation: g .8s linear infinite; }
+    @keyframes g { to { transform: rotate(360deg); } }
+    #paginas { padding: 20px 0 40px; }
+    @media screen { .pagedjs_pages { display: flex; flex-direction: column; align-items: center; gap: 18px; } .pagedjs_page { background: #fff; box-shadow: 0 6px 24px -10px rgba(0,0,0,.35); } }
+    @media print { .barra, .estado { display: none !important; } body { background: #fff; } #paginas { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div class="barra">
+    <img src="logo.svg" alt="">
+    <span id="titulo"><b>Preparando el documento…</b></span>
+    <button type="button" id="btnImprimir" disabled>Guardar como PDF</button>
+  </div>
+  <div class="estado" id="estado"><div class="spin"></div><span id="estadoTxt">Maquetando el PAC (puede tardar unos segundos)…</span></div>
+  <div id="paginas"></div>
+
+  <script>window.PagedConfig = { auto: false };</script>
+  <script src="lib/paged.polyfill.min.js"></script>
+  <script src="config.js"></script>
+  <script>if (window.APP_CONFIG.supabaseUrl) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>');</script>
+  <script src="render.js"></script>
+  <script src="datos.js"></script>
+  <script src="imprimir.js"></script>
+</body>
+</html>
