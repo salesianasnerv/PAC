@@ -113,6 +113,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .sin-sesion .presenta { border-bottom: 2px solid rgba(238, 113, 42, .5); }
 .login { min-height: 0; padding: 28px 0 32px; }
 .tarjeta h2 { margin: 0 0 .4rem; color: #d35a15; font-size: 1.4rem; }
+/* Botón de entrar en naranja, como la franja (apartado «General») */
+#btnLogin { background: #ee712a; border-color: #ee712a; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.2); box-shadow: 0 6px 16px -6px rgba(238, 113, 42, .6); }
+#btnLogin:hover { background: #d35a15; border-color: #d35a15; }
 /* Quién ve qué (Profesorado / Coordinación): igual que Reserva de espacios */
 .presenta-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 18px; align-items: start; }
 .info-bloque { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); }
