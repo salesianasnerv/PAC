@@ -25,7 +25,7 @@
     },
     _inicial() {
       const ini = window.PAC_INICIAL || { curso: { nombre: "2026/2027" }, apartados: [], roles: [] };
-      const d = { cursos: [], apartados: [], versiones: [], roles: [], miembros: [], rolAp: [], admins: ["coordinacion.demo@salesianas.org"], n: 1 };
+      const d = { cursos: [], apartados: [], versiones: [], roles: [], miembros: [], rolAp: [], admins: ["coordinacion.demo@salesianas.org"], documentos: [], n: 1 };
       d.cursos.push({ id: 1, nombre: ini.curso.nombre, lema: ini.curso.lema || "", subtitulo: ini.curso.subtitulo || "", estado: "abierto", activo: true });
       for (const a of ini.apartados) {
         d.apartados.push({ id: a.id, curso_id: 1, padre_id: a.padre, orden: a.orden, titulo: a.titulo, numerado: a.numerado,
@@ -150,6 +150,16 @@
     async addAdmin(email) { const d = this._db(); this._admin(d); if (d.admins.includes(email)) throw new Error("Esa cuenta ya está en coordinación"); d.admins.push(email); this._set(d); },
     async delAdmin(email) { const d = this._db(); this._admin(d); if (email === this._yo) throw new Error("No puedes quitarte a ti"); d.admins = d.admins.filter((e) => e !== email); this._set(d); },
 
+    // Documentos actualizados (solo coordinación)
+    async documentos() { const d = this._db(); this._admin(d); return (d.documentos || []).slice().sort((a, b) => b.curso.localeCompare(a.curso) || a.titulo.localeCompare(b.titulo)); },
+    async guardarDocumento(doc) {
+      const d = this._db(); this._admin(d); d.documentos = d.documentos || [];
+      if (doc.id) Object.assign(d.documentos.find((x) => x.id === doc.id), doc);
+      else d.documentos.push({ ...doc, id: this._id(d) });
+      this._set(d);
+    },
+    async borrarDocumento(id) { const d = this._db(); this._admin(d); d.documentos = (d.documentos || []).filter((x) => x.id !== id); this._set(d); },
+
     // Cursos
     async guardarCurso(c) {
       const d = this._db(); this._admin(d);
@@ -247,6 +257,14 @@
 
     async addAdmin(email) { unico(await sb.from("pac_admin").insert({ email }), "Esa cuenta ya está en coordinación"); },
     async delAdmin(email) { ok(await sb.from("pac_admin").delete().eq("email", email)); },
+
+    async documentos() { return ok(await sb.from("pac_documentos").select("*").order("curso", { ascending: false }).order("titulo")); },
+    async guardarDocumento(doc) {
+      const { id, ...datos } = doc;
+      if (id) ok(await sb.from("pac_documentos").update(datos).eq("id", id));
+      else ok(await sb.from("pac_documentos").insert(datos));
+    },
+    async borrarDocumento(id) { ok(await sb.from("pac_documentos").delete().eq("id", id)); },
 
     async guardarCurso(c) {
       const { id, ...datos } = c;

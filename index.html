@@ -66,6 +66,24 @@
         <p>Cada equipo redacta sus apartados aquí, con el formato ya hecho. El documento completo (o cualquier apartado) se descarga maquetado en PDF y en Word, con índice y numeración automáticos.</p>
       </div>
     </div>
+    <div class="presenta-info">
+      <details class="info-bloque">
+        <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg><span>Profesorado <small>Acceso: inicio de sesión con Microsoft 365 (@salesianas.org)</small></span></summary>
+        <ul>
+          <li><b>PAC:</b> todo el claustro lo lee completo, con su índice, y lo descarga en PDF o Word.</li>
+          <li><b>Mis apartados:</b> cada equipo edita solo los apartados de su rol.</li>
+          <li><b>Seguimiento:</b> el estado de cada apartado y lo que falta por redactar.</li>
+        </ul>
+      </details>
+      <details class="info-bloque">
+        <summary><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Coordinación <em class="aviso-etq">Solo cuentas autorizadas</em> <small>Acceso: inicio de sesión con Microsoft 365 (@salesianas.org)</small></span></summary>
+        <ul>
+          <li><b>Índice y apartados</b>, <b>roles y permisos</b> y <b>cursos y portada</b>.</li>
+          <li><b>Documentos actualizados:</b> los enlaces del PAC aprobado de cada curso y de los documentos de referencia.</li>
+          <li>Edita cualquier apartado y lo marca como revisado.</li>
+        </ul>
+      </details>
+    </div>
   </section>
 
   <div id="demoAviso" class="demo" hidden>
@@ -83,6 +101,7 @@
         <button type="button" data-ir="#/admin/indice" style="--c:#007791"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></svg>Índice y apartados</button>
         <button type="button" data-ir="#/admin/roles" style="--c:#8a9400"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>Roles y permisos</button>
         <button type="button" data-ir="#/admin/cursos" style="--c:#ee712a"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Cursos y portada</button>
+        <button type="button" data-ir="#/admin/documentos" style="--c:#475569"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Documentos actualizados</button>
       </div>
     </div>
   </nav>
@@ -90,12 +109,10 @@
   <main id="main">
     <section class="login" id="login" hidden>
       <div class="tarjeta">
-        <img class="logo" src="logo.svg" alt="">
-        <span class="eyebrow">Claustro</span>
-        <h1>PAC</h1>
-        <p>Entra con tu cuenta de Microsoft 365 del colegio. Todo el claustro puede leer el PAC; cada equipo edita sus apartados.</p>
+        <h2>Iniciar sesión</h2>
+        <p>Pulsa el botón y entra con tu cuenta del colegio <strong>@salesianas.org</strong>.</p>
         <div id="loginReal">
-          <button class="btn primario btn-ms" id="btnLogin" type="button"><svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Entrar con Microsoft 365</button>
+          <button class="btn primario grande btn-ms" id="btnLogin" type="button"><svg width="20" height="20" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Entrar con Microsoft 365</button>
         </div>
         <div id="loginDemo" class="login-demo" hidden>
           <p class="mini">Modo prueba: elige con qué permisos quieres probar.</p>

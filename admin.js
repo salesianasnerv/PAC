@@ -3,16 +3,18 @@
   "use strict";
   const { esc, ESTADOS, vacio } = window.PAC;
   const A = () => window.APP;
-  const C = { sec: "indice", cont: null, rolSel: null, renombrando: null, admins: [] };
+  const C = { sec: "indice", cont: null, rolSel: null, renombrando: null, admins: [], docs: [], docEd: null };
 
   async function ver(sec, cont) {
     C.sec = sec; C.cont = cont;
     if (sec === "roles") { try { C.admins = await A().api.admins(); } catch (e) { A().fallo(e); } }
+    if (sec === "documentos") { C.docEd = null; try { C.docs = await A().api.documentos(); } catch (e) { C.docs = []; A().fallo(e); } }
     pintar();
   }
   function pintar() {
     if (C.sec === "roles") return roles();
     if (C.sec === "cursos") return cursos();
+    if (C.sec === "documentos") return documentos();
     return indice();
   }
   // Vuelve a leer apartados y roles (tras un cambio de coordinación)
@@ -218,9 +220,77 @@
     } catch (e) { A().fallo(e); }
   }
 
+  // ════ Documentos actualizados ═════════════════════════════════════════════
+  const TIPOS_DOC = { pac: "PAC de cada curso", referencia: "Documentos de referencia", otro: "Otros documentos" };
+  function documentos() {
+    const S = A().S, I = A().icono, ed = C.docs.find((d) => d.id === C.docEd) || null;
+    const v = ed || { tipo: "pac", titulo: "", curso: S.curso.nombre, enlace: "", notas: "" };
+    const grupo = ([tipo, nombre]) => {
+      const docs = C.docs.filter((d) => d.tipo === tipo);
+      return docs.length ? `<h3>${nombre}</h3><div>${docs.map((d) => `<div class="est-fila doc-fila" data-doc="${d.id}">
+          <span class="t"><a href="${esc(d.enlace)}" target="_blank" rel="noopener noreferrer"><b>${esc(d.titulo)}</b></a>
+            ${d.curso ? `<span class="tag-vacio">${esc(d.curso)}</span>` : ""}${d.notas ? `<small class="mini doc-notas">${esc(d.notas)}</small>` : ""}</span>
+          <span class="acc">
+            <button type="button" data-d="copiar" title="Copiar el enlace">Copiar enlace</button>
+            <button type="button" data-d="editar" title="Editar">${I("lapiz")}</button>
+            <button type="button" data-d="borrar" class="peligro" title="Quitar de la lista">${I("papelera")}</button>
+          </span></div>`).join("")}</div>` : "";
+    };
+    C.cont.innerHTML = `<div class="panel"><h2>Documentos actualizados</h2>
+      <p class="sub">Enlaces a los documentos de cada curso para tenerlos siempre a mano: el PAC aprobado (Word o PDF), documentos de referencia (PEC, memoria final, normativa…) y cualquier otro. Solo los ve coordinación.</p>
+      <div class="doc-form">
+        <div class="campos">
+          <label class="campo">Tipo<select id="docTipo">${Object.entries(TIPOS_DOC).map(([k, n]) => `<option value="${k}"${v.tipo === k ? " selected" : ""}>${n}</option>`).join("")}</select></label>
+          <label class="campo doc-ancho">Nombre<input id="docTitulo" maxlength="160" value="${esc(v.titulo)}" placeholder="Ej.: PAC aprobado por el Consejo Escolar (PDF)"></label>
+          <label class="campo">Curso<input id="docCurso" maxlength="20" value="${esc(v.curso)}" placeholder="2026/2027"></label>
+        </div>
+        <div class="campos" style="margin-top:10px">
+          <label class="campo doc-ancho">Enlace<input id="docEnlace" type="url" value="${esc(v.enlace)}" placeholder="https://salesianas.sharepoint.com/…"></label>
+          <label class="campo">Notas (opcional)<input id="docNotas" maxlength="300" value="${esc(v.notas)}" placeholder="Dónde está, quién lo gestiona…"></label>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+          ${ed ? '<button type="button" class="btn" id="btnDocCancelar">Cancelar</button>' : ""}
+          <button type="button" class="btn primario" id="btnDocGuardar">${ed ? "Guardar cambios" : "Añadir documento"}</button>
+        </div>
+      </div>
+      ${C.docs.length ? Object.entries(TIPOS_DOC).map(grupo).join("") : '<p class="mini" style="margin-top:14px">Todavía no hay documentos.</p>'}
+    </div>`;
+    if (ed) document.getElementById("docTitulo").focus();
+  }
+  async function guardarDocumento() {
+    const val = (id) => document.getElementById(id).value.trim();
+    const doc = { tipo: val("docTipo"), titulo: val("docTitulo"), curso: val("docCurso"), enlace: val("docEnlace"), notas: val("docNotas") };
+    if (!doc.titulo) return document.getElementById("docTitulo").focus();
+    if (!/^https?:\/\//i.test(doc.enlace)) { A().toast("El enlace tiene que empezar por https://", true); return document.getElementById("docEnlace").focus(); }
+    if (C.docEd) doc.id = C.docEd;
+    try {
+      await A().api.guardarDocumento(doc);
+      A().toast(C.docEd ? "Documento actualizado" : "Documento añadido");
+      C.docEd = null; C.docs = await A().api.documentos(); documentos();
+    } catch (e) { A().fallo(e); }
+  }
+  async function accionDocumento(id, a) {
+    const d = C.docs.find((x) => x.id === id);
+    if (!d) return;
+    if (a === "editar") { C.docEd = id; documentos(); return document.querySelector(".doc-form").scrollIntoView({ behavior: "smooth", block: "center" }); }
+    if (a === "copiar") {
+      try { await navigator.clipboard.writeText(d.enlace); A().toast("Enlace copiado"); } catch { prompt("Copia el enlace:", d.enlace); }
+      return;
+    }
+    if (a === "borrar") {
+      if (!(await A().confirmar("Quitar «" + d.titulo + "»", "Se quita de esta lista. El documento no se borra de SharePoint.", "Quitar", true))) return;
+      try { await A().api.borrarDocumento(id); if (C.docEd === id) C.docEd = null; C.docs = await A().api.documentos(); documentos(); } catch (e) { A().fallo(e); }
+    }
+  }
+
   // ─── Eventos ──────────────────────────────────────────────────────────────
   document.getElementById("vAdmin").addEventListener("click", async (e) => {
     const S = A().S, t = e.target;
+    // Documentos
+    const ad = t.closest("[data-d]");
+    if (ad) return accionDocumento(Number(ad.closest("[data-doc]").dataset.doc), ad.dataset.d);
+    if (t.closest("#btnDocGuardar")) return guardarDocumento();
+    if (t.closest("#btnDocCancelar")) { C.docEd = null; return documentos(); }
     // Índice
     const ai = t.closest("[data-a]");
     if (ai) return accionIndice(ai.closest("[data-id]").dataset.id, ai.dataset.a);

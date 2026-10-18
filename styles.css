@@ -113,8 +113,28 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .sin-sesion .presenta { border-bottom: 2px solid rgba(238, 113, 42, .5); }
 .login { min-height: 0; padding: 28px 0 32px; }
 .tarjeta h2 { margin: 0 0 .4rem; color: #d35a15; font-size: 1.4rem; }
-#btnLogin { background: #ee712a; border-color: #ee712a; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.2); box-shadow: 0 6px 16px -6px rgba(238, 113, 42, .6); }
-#btnLogin:hover { background: #d35a15; border-color: #d35a15; }
+/* Quién ve qué (Profesorado / Coordinación): igual que Reserva de espacios */
+.presenta-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 18px; align-items: start; }
+.info-bloque { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); }
+.info-bloque summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; font-weight: 700; }
+.info-bloque summary::-webkit-details-marker { display: none; }
+.info-bloque summary > svg { width: 20px; height: 20px; flex: none; fill: none; stroke: #d35a15; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.info-bloque summary > span { flex: 1; min-width: 0; }
+.info-bloque summary small { display: block; font-weight: 500; font-size: .8rem; color: var(--suave); }
+.info-bloque summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--suave); border-bottom: 2px solid var(--suave); transform: rotate(45deg); margin-top: -4px; transition: transform .15s; }
+.info-bloque[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.info-bloque summary:hover { color: #d35a15; }
+.info-bloque ul { margin: 0; padding: 0 16px 14px 34px; color: var(--suave); font-size: .9rem; }
+.info-bloque li + li { margin-top: 3px; }
+.info-bloque b { color: var(--texto); font-weight: 600; }
+.aviso-etq { display: inline-block; margin-left: 6px; vertical-align: 3px; line-height: 1.5; font-style: normal; font-size: .7rem; font-weight: 700;
+  color: var(--mal); background: var(--mal-bg); padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+/* Documentos actualizados (Coordinación) */
+.doc-form { background: var(--neutro-bg); border: 1px solid var(--borde); border-radius: var(--radio); padding: 12px; }
+.doc-form .campo { display: grid; gap: 4px; }
+.doc-fila .t a { color: var(--azul); text-decoration: none; } .doc-fila .t a:hover { text-decoration: underline; }
+.doc-fila .tag-vacio { margin-left: 4px; }
+.doc-notas { display: block; margin-top: 2px; }
 :root[data-theme="dark"] .presenta h1, :root[data-theme="dark"] .tarjeta h2, :root[data-theme="dark"] .cartel,
 :root[data-theme="dark"] .presenta-ico, :root[data-theme="dark"] .sesion-salir { color: #f59152; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .presenta h1, :root:not([data-theme="light"]) .tarjeta h2,
@@ -145,6 +165,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 nav > button.activa .contador { background: rgba(0,154,187,.14); color: var(--azul); }
 main { max-width: 1320px; }
 .login-demo { display: grid; gap: 8px; }
+.login-demo[hidden] { display: none; }
 .login-demo .mini { margin: 0 0 4px; }
 
 /* Selector de curso en la franja */

@@ -16,11 +16,12 @@ Web para redactar entre todo el claustro el Plan Anual de Centro sin que el form
 
 ## Coordinación
 
-Las cuentas de coordinación ven el menú **Coordinación**, con tres pantallas:
+Las cuentas de coordinación ven el menú **Coordinación**, con cuatro pantallas:
 
 - **Índice y apartados:** cambiar títulos, subir y bajar apartados, meterlos o sacarlos de nivel, añadir subapartados, quitarles el número (Presentación, Objetivos…), ponerlos en horizontal y borrarlos.
 - **Roles y permisos:** crear, renombrar y borrar roles; añadir o quitar personas (se pueden pegar varios correos a la vez, y si falta `@salesianas.org` se añade solo); marcar los apartados que edita cada rol; y gestionar las cuentas de coordinación.
 - **Cursos y portada:** el lema y el subtítulo de la portada, el curso actual, cerrar o reabrir un PAC y crear el del curso siguiente.
+- **Documentos actualizados:** enlaces a los documentos de cada curso (PAC aprobado en Word o PDF, documentos de referencia como el PEC o la memoria, y otros), con su curso y notas. Solo los ve coordinación. Tabla `pac_documentos` (`supabase/documentos.sql`, también al final de `schema.sql`).
 
 Además, coordinación edita cualquier apartado y es la única que puede marcarlos como **Revisado**. Si un equipo cambia un apartado ya revisado, vuelve solo a «En redacción».
 
@@ -69,5 +70,5 @@ Las tablas de esta web empiezan por `pac_` y no tocan las del Control de baños 
 - `datos.js`: el acceso a los datos (modo prueba o Supabase).
 - `config.js`: la conexión con Supabase y los datos del centro que salen en la portada.
 - `datos-iniciales.js`: el PAC importado del Word (solo se usa en el modo prueba).
-- `supabase/schema.sql`, `supabase/seed.sql`: la base de datos y el PAC inicial.
+- `supabase/schema.sql`, `supabase/seed.sql`: la base de datos y el PAC inicial. `supabase/documentos.sql`: solo la tabla de documentos (para añadirla a una base de datos ya en marcha).
 - `fonts/`: Fira Sans (licencia libre OFL). `img/`: logotipos para el PDF y el Word.
