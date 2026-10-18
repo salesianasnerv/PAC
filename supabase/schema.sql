@@ -1,7 +1,10 @@
 -- PAC (Plan Anual de Centro) · estructura de la base de datos (Supabase / PostgreSQL)
 -- Ejecutar una vez en Supabase → SQL Editor. Después, ejecutar seed.sql (el PAC importado del Word).
--- Puede ir en el mismo proyecto de Supabase que el Control de baños y la Reserva de espacios:
--- todas las tablas empiezan por pac_ y la coordinación del PAC es independiente.
+-- Va en el Supabase común «Acceso Microsoft 365»: todas las tablas propias empiezan por pac_ y la
+-- coordinación del PAC se guarda en la lista común «permisos» (web = 'pac'). «pac_admin» es una vista
+-- sobre ella, así que la web la usa igual que si fuera una tabla.
+
+begin;
 
 -- ── Cursos: un PAC por curso escolar ─────────────────────────────────────────
 create table if not exists pac_cursos (
@@ -65,11 +68,6 @@ create table if not exists pac_rol_apartados (
   primary key (rol_id, apartado_id)
 );
 
--- ── Coordinación del PAC (administración): estructura, roles, cursos y revisión ──
-create table if not exists pac_admin (
-  email text primary key check (email = lower(email))
-);
-
 -- ── Funciones de permisos ─────────────────────────────────────────────────────
 create or replace function pac_email() returns text
 language sql stable as $$ select lower(coalesce(auth.jwt() ->> 'email', '')) $$;
@@ -77,10 +75,9 @@ language sql stable as $$ select lower(coalesce(auth.jwt() ->> 'email', '')) $$;
 create or replace function pac_es_profesorado() returns boolean
 language sql stable as $$ select pac_email() like '%@salesianas.org' $$;
 
+-- Coordinación del PAC (estructura, roles, cursos y revisión) = permiso 'pac' (o 'todas') en «permisos»
 create or replace function pac_es_admin() returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (select 1 from pac_admin where email = pac_email())
-$$;
+language sql stable security definer set search_path = public as $$ select tiene_permiso('pac') $$;
 
 -- ¿Puede la persona que ha entrado editar este apartado? (por un rol suyo en él o en alguno de sus «padres»)
 create or replace function pac_puede_editar(ap uuid) returns boolean
@@ -168,7 +165,6 @@ alter table pac_versiones     enable row level security;
 alter table pac_roles         enable row level security;
 alter table pac_rol_miembros  enable row level security;
 alter table pac_rol_apartados enable row level security;
-alter table pac_admin         enable row level security;
 
 do $$ declare t text; begin
   foreach t in array array['pac_cursos', 'pac_roles', 'pac_rol_miembros', 'pac_rol_apartados'] loop
@@ -196,19 +192,45 @@ drop policy if exists "guardar versiones" on pac_versiones;
 create policy "leer versiones"    on pac_versiones for select to authenticated using (pac_es_profesorado());
 create policy "guardar versiones" on pac_versiones for insert to authenticated with check (pac_puede_editar(apartado_id));
 
--- Coordinación: todos ven quién coordina; coordinación añade cuentas del colegio y quita a otras (no a sí misma)
-drop policy if exists "ver coordinacion"    on pac_admin;
-drop policy if exists "nueva coordinacion"  on pac_admin;
-drop policy if exists "quitar coordinacion" on pac_admin;
-create policy "ver coordinacion"    on pac_admin for select to authenticated using (pac_es_profesorado());
-create policy "nueva coordinacion"  on pac_admin for insert to authenticated
-  with check (pac_es_admin() and email like '%@salesianas.org');
-create policy "quitar coordinacion" on pac_admin for delete to authenticated
-  using (pac_es_admin() and email <> pac_email());
+-- ── Coordinación: vista «pac_admin» sobre la lista común «permisos» ───────────
+-- Se lee, se añade y se borra igual que una tabla. Coordinación añade cuentas del colegio y quita a otras (no a sí misma).
+create or replace view pac_admin with (security_invoker = true) as
+  select email, creado, web from permisos where web = 'pac' with cascaded check option;
+alter view pac_admin alter column web set default 'pac';
+alter view pac_admin alter column creado set default now();
+grant select, insert, delete on pac_admin to authenticated;
+revoke all on pac_admin from anon;
+
+-- Reglas de «permisos»: se añade la parte del PAC; las de las demás webs quedan igual.
+alter policy "ver permisos" on permisos using (
+  email = email_jwt()
+  or (web = 'banos' and es_admin())
+  or (web = 'horarios' and hor_es_admin())
+  or (web = 'reservas' and es_admin_reservas())
+  or (web = 'pac' and pac_es_admin())
+  or tiene_permiso('todas'));
+
+alter policy "dar permiso" on permisos with check (
+  (web = 'banos' and es_admin() and email like '%@salesianas.org')
+  or (web = 'horarios' and hor_es_admin())
+  or (web = 'reservas' and es_admin_reservas() and email like '%@salesianas.org')
+  or (web = 'pac' and pac_es_admin() and email like '%@salesianas.org')
+  or tiene_permiso('todas'));
+
+alter policy "quitar permiso" on permisos using (
+  (web = 'banos' and es_admin() and email <> email_jwt())
+  or (web = 'horarios' and hor_es_admin())
+  or (web = 'reservas' and es_admin_reservas() and email <> email_jwt())
+  or (web = 'pac' and pac_es_admin() and email <> email_jwt())
+  or (tiene_permiso('todas') and email <> email_jwt()));
 
 -- ── Primeras cuentas de coordinación (después se gestionan desde la web) ─────
-insert into pac_admin (email) values
-  ('mangeles.chavez@salesianas.org'),
-  ('laura.ramos@salesianas.org'),
-  ('rocio.cano@salesianas.org')
+insert into permisos (email, web) values
+  ('mangeles.chavez@salesianas.org', 'pac'),
+  ('laura.ramos@salesianas.org', 'pac'),
+  ('rocio.cano@salesianas.org', 'pac')
 on conflict do nothing;
+
+commit;
+
+notify pgrst, 'reload schema';
