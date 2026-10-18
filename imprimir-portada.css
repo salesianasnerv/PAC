@@ -1,0 +1,5 @@
+/* Solo para el PAC completo: la primera página (portada) va a sangre, sin márgenes ni cabecera ni pie */
+@page :first {
+  margin: 0;
+  @top-left { content: none; } @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; }
+}

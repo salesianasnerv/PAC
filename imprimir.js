@@ -43,7 +43,7 @@
       plantilla.innerHTML = documento(curso, T, raiz);
       $("#estadoTxt").textContent = "Maquetando las páginas…";
       const previo = new Paged.Previewer();
-      const flujo = await previo.preview(plantilla.content, ["documento.css", "imprimir.css"], $("#paginas"));
+      const flujo = await previo.preview(plantilla.content, ["documento.css", "imprimir.css", ...(raiz ? [] : ["imprimir-portada.css"])], $("#paginas"));
       $("#estado").hidden = true;
       $("#titulo").innerHTML += ` · ${flujo.total} páginas. <span style="font-size:13px">Pulsa el botón y elige <b>Guardar como PDF</b> como destino.</span>`;
       const b = $("#btnImprimir"); b.disabled = false; b.addEventListener("click", () => window.print());
@@ -64,12 +64,14 @@
   function documento(curso, T, raiz) {
     const nodos = raiz ? rama(raiz) : T.lista;
     const nivelBase = raiz ? raiz.nivel - 1 : 0;
-    let html = `<div class="doc">
-      <div class="cabecera-run"><img src="img/logo-horizontal.png" alt=""></div>
+    // La cabecera (logo) y el nombre del curso para las páginas: van dentro del primer bloque
+    // para que no ocupen una página propia antes de la portada
+    const marcas = `<div class="cabecera-run"><img src="img/logo-horizontal.png" alt=""></div>
       <span class="marca-curso">Plan Anual de Centro · ${esc(curso.nombre)}</span>`;
+    let html = `<div class="doc">`;
 
     if (!raiz) {
-      html += `<section class="portada">
+      html += `<section class="portada">${marcas}
         <div class="franja-color f-azul"></div><div class="franja-color f-verde"></div>
         <div class="logo-portada"><img src="img/logo-vertical.png" alt=""></div>
         <div class="titulo">
@@ -85,7 +87,7 @@
         ${T.lista.filter((n) => n.nivel <= 3).map((n) => `<li class="l${n.nivel}"><span class="n">${esc(n.numero)}</span><span class="t">${esc(n.titulo)}</span><span class="puntos"></span><a class="pag" href="#ap-${n.id}"></a></li>`).join("")}
       </ol></section>`;
     } else {
-      html += `<div class="solo-apartado"><img src="img/logo-horizontal.png" alt=""><div><b>Plan Anual de Centro ${esc(curso.nombre)}</b>${esc(CFG.centro || "")}</div></div>`;
+      html += marcas + `<div class="solo-apartado"><div><b>Plan Anual de Centro ${esc(curso.nombre)}</b>${esc(CFG.centro || "")}</div></div>`;
     }
 
     nodos.forEach((n, k) => {
@@ -99,7 +101,7 @@
         const h = nivel === 2 ? "h3" : "h4";
         cab = `<${h} class="ap-titulo">${n.numero ? `<span class="num">${esc(n.numero)}</span>` : ""}<span>${esc(n.titulo)}</span></${h}>`;
       }
-      const cuerpo = vacio(n.bloques) ? (n.hijos.length ? "" : '<p class="vacio">(Apartado pendiente de redactar)</p>') : bloquesHTML(n.bloques);
+      const cuerpo = vacio(n.bloques) ? (n.hijos.length ? "" : '<p class="vacio">(Apartado pendiente de redactar)</p>') : bloquesHTML(n.bloques, { sinRowspan: true });
       html += `<section class="${clase}${k === 0 ? " primero" : ""}" id="ap-${n.id}">${cab}${cuerpo}</section>`;
     });
     return html + "</div>";

@@ -189,9 +189,12 @@ create policy "editar apartados" on pac_apartados for update to authenticated
   using (pac_puede_editar(id)) with check (pac_puede_editar(id));
 create policy "borrar apartados" on pac_apartados for delete to authenticated using (pac_es_admin());
 
--- El historial lo escribe solo la base de datos (trigger); lo lee todo el profesorado
-drop policy if exists "leer versiones" on pac_versiones;
-create policy "leer versiones" on pac_versiones for select to authenticated using (pac_es_profesorado());
+-- El historial lo escribe la base de datos (trigger) al guardar; lo lee todo el profesorado.
+-- La regla de escritura es por si el trigger se ejecuta con las reglas de seguridad activas.
+drop policy if exists "leer versiones"    on pac_versiones;
+drop policy if exists "guardar versiones" on pac_versiones;
+create policy "leer versiones"    on pac_versiones for select to authenticated using (pac_es_profesorado());
+create policy "guardar versiones" on pac_versiones for insert to authenticated with check (pac_puede_editar(apartado_id));
 
 -- Coordinación: todos ven quién coordina; coordinación añade cuentas del colegio y quita a otras (no a sí misma)
 drop policy if exists "ver coordinacion"    on pac_admin;

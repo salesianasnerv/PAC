@@ -46,7 +46,7 @@
 /* Tablas: cabecera azul, filas alternas, sin cuadrículas gruesas */
 .doc table.tabla { width: 100%; border-collapse: collapse; margin: .5em 0 1.3em; font-size: .8em; line-height: 1.38; }
 .doc table.tabla.ancha { font-size: .74em; }
-.doc table.tabla th, .doc table.tabla td { border: 1px solid var(--d-linea); padding: .45em .55em; vertical-align: top; text-align: left; overflow-wrap: anywhere; hyphens: auto; }
+.doc table.tabla th, .doc table.tabla td { border: 1px solid var(--d-linea); padding: .45em .55em; vertical-align: top; text-align: left; overflow-wrap: break-word; hyphens: auto; }
 .doc table.tabla thead th { background: var(--d-azul); color: #fff; font-weight: 700; border-color: var(--d-azul); vertical-align: middle; }
 .doc table.tabla tbody tr:nth-child(even) td { background: var(--d-cebra); }
 .doc table.tabla td[rowspan] { background: var(--d-claro) !important; }

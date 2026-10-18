@@ -77,19 +77,10 @@
       return out;
     }
 
-    // Anchos de columna según lo que hay escrito en cada una (con mínimo y máximo)
+    // Anchos de columna: el mismo reparto que en la web y el PDF
     function anchos(filas, total) {
-      const C = filas[0].length;
-      const peso = Array.from({ length: C }, (_, c) => {
-        let m = 0;
-        filas.forEach((f, r) => { const x = f[c]; if (typeof x === "string" && !(f[c + 1]?.c)) m += Math.min(400, textoPlano(x).length) / (r === 0 ? 3 : 1); });
-        return Math.sqrt(m + 20);
-      });
-      const suma = peso.reduce((a, b) => a + b, 0);
-      let w = peso.map((p) => Math.max(total * 0.07, (p / suma) * total));
-      const s2 = w.reduce((a, b) => a + b, 0);
-      w = w.map((x) => Math.floor((x / s2) * total));
-      w[C - 1] += total - w.reduce((a, b) => a + b, 0);
+      const w = window.PAC.anchosColumnas(filas).map((x) => Math.floor(x * total));
+      w[w.length - 1] += total - w.reduce((a, b) => a + b, 0);
       return w;
     }
     function tabla(b, horizontal) {
@@ -231,9 +222,50 @@
       },
       sections: secciones,
     });
-    const blob = await Packer.toBlob(doc);
+    const blob = await incrustarFuentes(await Packer.toBlob(doc));
     const nombre = (`PAC ${curso.nombre.replace("/", "-")}` + (raiz ? ` - ${raiz.numero ? raiz.numero + " " : ""}${raiz.titulo}` : "")).replace(/[\\/:*?"<>|]/g, "") + ".docx";
     return { blob, nombre };
+  }
+
+  // ── La letra corporativa va dentro del .docx (normal, negrita, cursiva y negrita cursiva) ──
+  // Así el Word se ve igual en cualquier ordenador aunque no tenga Fira Sans instalada.
+  // Las fuentes incrustadas van «ofuscadas» como pide el formato de Office: los 32 primeros bytes, con una clave por fuente.
+  function ofuscar(buf, clave) {
+    const k = clave.replace(/[{}-]/g, "").match(/../g).map((h) => parseInt(h, 16)).reverse();
+    const out = new Uint8Array(buf);
+    for (let i = 0; i < 32 && i < out.length; i++) out[i] ^= k[i % k.length];
+    return out;
+  }
+  async function incrustarFuentes(blob) {
+    if (!window.JSZip) return blob;
+    try {
+      const zip = await JSZip.loadAsync(blob);
+      const caras = [["Regular", "embedRegular"], ["Bold", "embedBold"], ["Italic", "embedItalic"], ["BoldItalic", "embedBoldItalic"]];
+      let rels = "", emb = "";
+      for (let i = 0; i < caras.length; i++) {
+        const [cara, etiqueta] = caras[i];
+        const clave = "{" + (crypto.randomUUID ? crypto.randomUUID() : window.PAC_DATOS.uuid()).toUpperCase() + "}";
+        zip.file(`word/fonts/FiraSans-${cara}.odttf`, ofuscar(await bytes(`fonts/FiraSans-${cara}.ttf`), clave));
+        rels += `<Relationship Id="rIdFira${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="fonts/FiraSans-${cara}.odttf"/>`;
+        emb += `<w:${etiqueta} r:id="rIdFira${i + 1}" w:fontKey="${clave}"/>`;
+      }
+      const fuente = `<w:font w:name="${FUENTE}"><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/>${emb}</w:font>`;
+      let ft = await zip.file("word/fontTable.xml").async("string");
+      ft = /<\/w:fonts>/.test(ft) ? ft.replace("</w:fonts>", fuente + "</w:fonts>") : ft.replace(/<w:fonts([^>]*)\/>/, `<w:fonts$1>${fuente}</w:fonts>`);
+      zip.file("word/fontTable.xml", ft);
+      const rr = zip.file("word/_rels/fontTable.xml.rels");
+      let r = rr ? await rr.async("string") : '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>';
+      r = /<\/Relationships>/.test(r) ? r.replace("</Relationships>", rels + "</Relationships>") : r.replace(/<Relationships([^>]*)\/>/, `<Relationships$1>${rels}</Relationships>`);
+      zip.file("word/_rels/fontTable.xml.rels", r);
+      let ct = await zip.file("[Content_Types].xml").async("string");
+      if (!/Extension="odttf"/.test(ct)) ct = ct.replace("</Types>", '<Default ContentType="application/vnd.openxmlformats-officedocument.obfuscatedFont" Extension="odttf"/></Types>');
+      zip.file("[Content_Types].xml", ct);
+      // Que Word las conserve si alguien vuelve a guardar el documento
+      let st = await zip.file("word/settings.xml").async("string");
+      if (!/embedTrueTypeFonts/.test(st)) st = /<w:displayBackgroundShape[^>]*\/>/.test(st) ? st.replace(/(<w:displayBackgroundShape[^>]*\/>)/, "$1<w:embedTrueTypeFonts/>") : st.replace(/(<w:settings[^>]*>)/, "$1<w:embedTrueTypeFonts/>");
+      zip.file("word/settings.xml", st);
+      return await zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", compression: "DEFLATE" });
+    } catch (e) { console.warn("No se ha podido incrustar la letra en el Word", e); return blob; }
   }
 
   window.PAC_WORD = { generar };

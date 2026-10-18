@@ -91,6 +91,30 @@
     return out;
   }
 
+  // Reparto del ancho entre columnas (en tanto por uno) según lo que hay escrito en cada una.
+  // Las palabras largas de la cabecera («Temporalización») marcan un mínimo para que no se partan.
+  function anchosColumnas(filas) {
+    const C = filas[0]?.length || 0;
+    if (!C) return [];
+    const txt = (x) => (typeof x === "string" ? textoPlano(x) : "");
+    const peso = [], minimo = [];
+    for (let c = 0; c < C; c++) {
+      let total = 0, palabra = 4;
+      filas.forEach((f, r) => {
+        if (f[c + 1]?.c) return;                      // celda unida hacia la derecha: no cuenta
+        const t = txt(f[c]);
+        total += Math.min(500, t.length) / (r === 0 ? 4 : 1);
+        for (const p of t.split(/\s+/)) if (p.length > palabra && p.length < 18) palabra = p.length;
+      });
+      peso.push(Math.sqrt(total / filas.length + 6));
+      minimo.push(Math.min(0.24, (palabra * 0.72 + 1.8) / 100 * (C > 5 ? 1.1 : 0.8)));
+    }
+    const suma = peso.reduce((a, b) => a + b, 0);
+    let w = peso.map((p, i) => Math.max(minimo[i], p / suma));
+    const s2 = w.reduce((a, b) => a + b, 0);
+    return w.map((x) => x / s2);
+  }
+
   // ── Bloques → HTML (misma salida para la web y para el PDF) ──
   function bloquesHTML(bloques, op = {}) {
     return (bloques || []).map((b) => bloqueHTML(b, op)).join("\n");
@@ -120,8 +144,23 @@
       case "tabla": {
         const filas = b.filas || [];
         if (!filas.length) return "";
-        const sp = spans(filas), C = filas[0].length;
-        const fila = (r, celda) => "<tr>" + sp[r].map((s) => s && `<${celda}${s.rs > 1 ? ` rowspan="${s.rs}"` : ""}${s.cs > 1 ? ` colspan="${s.cs}"` : ""}>${limpiarInline(s.html)}</${celda}>`).join("") + "</tr>";
+        const sp = spans(filas), C = filas[0].length, an = anchosColumnas(filas);
+        // El ancho va en cada celda (no en <colgroup>): así se conserva cuando la tabla se parte entre páginas
+        const ancho = (c, cs) => (an.slice(c, c + cs).reduce((a, x) => a + x, 0) * 100).toFixed(2);
+        // En el PDF (op.sinRowspan) las celdas unidas hacia abajo se dibujan como celdas seguidas sin borde entre ellas:
+        // Paged.js pierde filas cuando un «rowspan» cruza un salto de página
+        const lider = (r, c) => { while (r > 0 && filas[r][c]?.m) r--; return sp[r][c]; };
+        const celdaHTML = (r, c, s, celda) => {
+          const cs = s.cs > 1 ? ` colspan="${s.cs}"` : "", w = ` style="width:${ancho(c, s.cs)}%"`;
+          if (!op.sinRowspan) return `<${celda}${w}${s.rs > 1 ? ` rowspan="${s.rs}"` : ""}${cs}>${limpiarInline(s.html)}</${celda}>`;
+          return `<${celda}${w}${cs}${s.rs > 1 ? ' class="une-abajo grupo"' : ""}>${limpiarInline(s.html)}</${celda}>`;
+        };
+        const fila = (r, celda) => "<tr>" + sp[r].map((s, c) => {
+          if (s) return celdaHTML(r, c, s, celda);
+          if (!op.sinRowspan || !filas[r][c]?.m) return "";
+          const l = lider(r, c), sigue = filas[r + 1]?.[c]?.m;
+          return `<${celda} style="width:${ancho(c, l?.cs || 1)}%"${l?.cs > 1 ? ` colspan="${l.cs}"` : ""} class="une-arriba grupo${sigue ? " une-abajo" : ""}"></${celda}>`;
+        }).join("") + "</tr>";
         let html = `<table class="tabla cols-${Math.min(C, 9)}${C >= 6 ? " ancha" : ""}">`;
         let desde = 0;
         if (b.cabecera) { html += "<thead>" + fila(0, "th") + "</thead>"; desde = 1; }
@@ -146,5 +185,5 @@
     revisado: { txt: "Revisado", color: "#8a9400" },
   };
 
-  window.PAC = { esc, arbol, rama, limpiarInline, textoPlano, spans, bloquesHTML, vacio, ESTADOS };
+  window.PAC = { esc, arbol, rama, limpiarInline, textoPlano, spans, anchosColumnas, bloquesHTML, vacio, ESTADOS };
 })();

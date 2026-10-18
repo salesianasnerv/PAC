@@ -369,6 +369,7 @@
     trabajando(true, "Preparando el documento de Word…");
     try {
       await cargarScript("lib/docx.iife.js");
+      await cargarScript("lib/jszip.min.js");
       const { blob, nombre } = await window.PAC_WORD.generar({ curso: S.curso, T: S.T, apartadoId: apId, cfg: CFG });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob); a.download = nombre;

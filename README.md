@@ -53,7 +53,7 @@ Las tablas de esta web empiezan por `pac_` y no tocan las del Control de baños 
 ## Algunas notas
 
 - **PDF:** el botón abre el documento ya maquetado. Pulsa **Guardar como PDF** y, en el cuadro de impresión, elige *Guardar como PDF* como destino. Funciona mejor en Chrome o Edge. El PAC completo tarda unos segundos en maquetarse.
-- **Word:** al abrirlo, Word pregunta si quieres **actualizar los campos**. Di que sí y se rellena el índice con los números de página. Si no lo pregunta, pulsa con el botón derecho sobre el índice y elige *Actualizar campos*. El documento usa la letra corporativa **Fira Sans** (gratuita). Si el ordenador no la tiene instalada, Word pone una parecida; para que se vea igual que el PDF, instálala desde `fonts/` o desde Google Fonts.
+- **Word:** al abrirlo, Word pregunta si quieres **actualizar los campos**. Di que sí y se rellena el índice con los números de página. Si no lo pregunta, pulsa con el botón derecho sobre el índice y elige *Actualizar campos*. La letra corporativa **Fira Sans** va incrustada dentro del documento (normal, negrita, cursiva y negrita cursiva), así que se ve igual en cualquier ordenador aunque no la tenga instalada.
 - **Imágenes:** se reducen solas al subirlas (1600 px como mucho) para que el PAC no pese.
 - **Importar un PAC de Word** (solo hace falta si algún curso se quiere empezar desde un Word): `Herramientas/importar_pac.py`, en la carpeta de fuera, genera `datos-iniciales.js` y `seed.sql` a partir del .docx.
 
@@ -64,8 +64,8 @@ Las tablas de esta web empiezan por `pac_` y no tocan las del Control de baños 
 - `admin.js`: las pantallas de coordinación.
 - `render.js`: la numeración y el paso del contenido a HTML. Lo comparten la web, el PDF y el Word.
 - `documento.css`: el aspecto del contenido (igual en la web y en el PDF).
-- `imprimir.html`, `imprimir.js`, `imprimir.css`: el documento maquetado para PDF (con Paged.js, en `lib/`).
-- `word.js`: el documento de Word (con la librería docx, en `lib/`).
+- `imprimir.html`, `imprimir.js`, `imprimir.css`, `imprimir-portada.css`: el documento maquetado para PDF (con Paged.js, en `lib/`).
+- `word.js`: el documento de Word (con las librerías docx y JSZip, en `lib/`).
 - `datos.js`: el acceso a los datos (modo prueba o Supabase).
 - `config.js`: la conexión con Supabase y los datos del centro que salen en la portada.
 - `datos-iniciales.js`: el PAC importado del Word (solo se usa en el modo prueba).
