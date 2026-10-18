@@ -1,7 +1,7 @@
 // Permite instalar el PAC como app y que abra rápido.
 // Los datos siempre se piden en el momento; aquí solo se guarda la «carcasa» de la web.
 // Si cambias la lista de archivos, sube también el número de VERSION.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `pac-${VERSION}`;
 const CARCASA = ['./', 'index.html', 'styles.css', 'documento.css', 'config.js', 'render.js', 'datos.js', 'app.js', 'editor.js', 'admin.js', 'word.js', 'manifest.json', 'logo.svg', 'favicon-32.png', 'favicon-48.png', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
