@@ -190,7 +190,9 @@
   const COLS = "id, curso_id, padre_id, orden, titulo, numerado, orientacion, bloques, estado, version, actualizado_por, actualizado_nombre, actualizado_en";
   const real = {
     async sesion() {
-      const { data: { session } } = await sb.auth.getSession();
+      let { data: { session } } = await sb.auth.getSession();
+      // Abierta desde la app de Teams: entra sola con la cuenta de Teams
+      if (!session && await window.TeamsSSO?.entrar(sb)) ({ data: { session } } = await sb.auth.getSession());
       if (!session) return null;
       const u = session.user, email = (u.email || "").toLowerCase();
       if (!email.endsWith("@" + CFG.dominio)) {
@@ -201,6 +203,7 @@
       return { email, nombre: u.user_metadata?.full_name || u.user_metadata?.name || nombreDeEmail(email), admin: !adm.error && adm.data.length > 0 };
     },
     async login() {
+      if (await window.TeamsSSO?.entrar(sb)) return location.reload();
       ok(await sb.auth.signInWithOAuth({ provider: "azure", options: { scopes: "email profile", redirectTo: location.origin + location.pathname } }));
     },
     async logout() { await sb.auth.signOut(); location.reload(); },
