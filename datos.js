@@ -69,10 +69,11 @@
     async apartados(cursoId) { return this._db().apartados.filter((a) => a.curso_id === cursoId).map((a) => ({ ...a })); },
     async roles() {
       const d = this._db();
-      return d.roles.map((r) => ({ ...r, miembros: d.miembros.filter((m) => m.rol_id === r.id).map((m) => m.email).sort(),
+      return d.roles.map((r) => ({ ...r, miembrosGrupo: [], miembros: d.miembros.filter((m) => m.rol_id === r.id).map((m) => m.email).sort(),
         apartados: d.rolAp.filter((x) => x.rol_id === r.id).map((x) => x.apartado_id) })).sort((a, b) => a.nombre.localeCompare(b.nombre));
     },
     async admins() { return [...this._db().admins].sort(); },
+    async grupos365() { return null; },   // en la demostración no hay grupos de Microsoft 365
 
     async guardarContenido(id, c, nombre) {
       const d = this._db(), a = d.apartados.find((x) => x.id === id);
@@ -217,11 +218,16 @@
       }
     },
     async roles() {
-      const [r, m, a] = await Promise.all([
-        sb.from("pac_roles").select("*").order("nombre"), sb.from("pac_rol_miembros").select("*"), sb.from("pac_rol_apartados").select("*")]);
-      const M = ok(m), A = ok(a);
-      return ok(r).map((x) => ({ ...x, miembros: M.filter((y) => y.rol_id === x.id).map((y) => y.email).sort(), apartados: A.filter((y) => y.rol_id === x.id).map((y) => y.apartado_id) }));
+      const [r, m, a, g] = await Promise.all([
+        sb.from("pac_roles").select("*").order("nombre"), sb.from("pac_rol_miembros").select("*"), sb.from("pac_rol_apartados").select("*"),
+        sb.rpc("pac_miembros_grupos")]);
+      const M = ok(m), A = ok(a), G = g.error ? [] : g.data;   // sin supabase/pac-grupos-m365.sql, solo los de a mano
+      return ok(r).map((x) => ({ ...x, miembros: M.filter((y) => y.rol_id === x.id).map((y) => y.email).sort(),
+        miembrosGrupo: G.filter((y) => y.rol_id === x.id).map((y) => ({ email: y.email, nombre: y.nombre })),
+        apartados: A.filter((y) => y.rol_id === x.id).map((y) => y.apartado_id) }));
     },
+    // Grupos de Microsoft 365 (sincronizados cada noche) que se pueden enlazar a un rol
+    async grupos365() { const { data, error } = await sb.rpc("pac_grupos_m365"); return error ? null : data; },
     async admins() { return ok(await sb.from("pac_admin").select("email").order("email")).map((x) => x.email); },
 
     async guardarContenido(id, c, nombre) {
@@ -247,6 +253,7 @@
 
     async guardarRol(r) {
       const datos = { nombre: r.nombre, descripcion: r.descripcion || "", color: r.color || "#3490b0" };
+      if ("grupo_entra" in r) datos.grupo_entra = r.grupo_entra || null;
       if (r.id) { unico(await sb.from("pac_roles").update(datos).eq("id", r.id), "Ya hay un rol con ese nombre"); return r.id; }
       return unico(await sb.from("pac_roles").insert(datos).select("id"), "Ya hay un rol con ese nombre")[0].id;
     },

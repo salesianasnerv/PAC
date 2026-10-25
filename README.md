@@ -40,7 +40,7 @@ Las tablas de esta web empiezan por `pac_` y no tocan las del Control de baños 
 3. **Publicar.** Sube esta carpeta a un repositorio nuevo de GitHub (por ejemplo, `pac`). En https://vercel.com, entra en *Add New → Project* e impórtalo. En *Framework Preset* elige **Other**, sin comando de compilación. Anota la dirección que te dé (por ejemplo, `https://pac-nervion.vercel.app`).
 4. **Permitir la vuelta tras el login.** En Supabase, en *Authentication → URL Configuration → Redirect URLs*, añade `https://pac-nervion.vercel.app/**` (con tu dirección). **No cambies la *Site URL***, porque es la del Control de baños.
 5. **Pasar a modo real.** En `config.js`, borra las dos líneas vacías de `supabaseUrl` y `supabaseAnonKey`, quita las `//` de las dos de debajo y súbelo a GitHub. Vercel publica la nueva versión solo en un minuto.
-6. **Poner a cada persona en su rol.** En *Coordinación → Roles y permisos*, añade los correos de cada equipo. Revisa también qué apartados tiene cada rol: los de partida son uno por equipo y uno por departamento.
+6. **Poner a cada persona en su rol.** En *Coordinación → Roles y permisos*, enlaza el rol con su grupo de Microsoft 365 (sus personas entran y salen solas con la sincronización de cada noche; `supabase/grupos-m365.sql`) o añade los correos a mano. Revisa también qué apartados tiene cada rol: los de partida son uno por equipo y uno por departamento.
 7. Añádela al portal https://claustro-utilidades.vercel.app/ (en `utilidades.js`).
 
 ## Seguridad

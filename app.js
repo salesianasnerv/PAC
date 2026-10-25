@@ -57,7 +57,8 @@
   const nodo = (id) => S.T?.porId.get(id);
   const cerrado = () => S.curso?.estado === "cerrado";
   // Roles de la persona que ha entrado
-  const misRoles = () => S.roles.filter((r) => r.miembros.includes(S.user.email));
+  // (las personas apuntadas a mano y las del grupo de Microsoft 365 enlazado al rol)
+  const misRoles = () => S.roles.filter((r) => r.miembros.includes(S.user.email) || (r.miembrosGrupo || []).some((m) => m.email === S.user.email));
   // Roles asignados a un apartado o a alguno de sus «padres» (los que lo pueden editar)
   function rolesDe(id) {
     const out = [];

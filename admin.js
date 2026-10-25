@@ -3,11 +3,11 @@
   "use strict";
   const { esc, ESTADOS, vacio } = window.PAC;
   const A = () => window.APP;
-  const C = { sec: "indice", cont: null, rolSel: null, renombrando: null, admins: [], docs: [], docEd: null };
+  const C = { sec: "indice", cont: null, rolSel: null, renombrando: null, admins: [], grupos: null, docs: [], docEd: null };
 
   async function ver(sec, cont) {
     C.sec = sec; C.cont = cont;
-    if (sec === "roles") { try { C.admins = await A().api.admins(); } catch (e) { A().fallo(e); } }
+    if (sec === "roles") { try { [C.admins, C.grupos] = await Promise.all([A().api.admins(), A().api.grupos365()]); } catch (e) { A().fallo(e); } }
     if (sec === "documentos") { C.docEd = null; try { C.docs = await A().api.documentos(); } catch (e) { C.docs = []; A().fallo(e); } }
     pintar();
   }
@@ -125,12 +125,23 @@
         <div>
           <div class="roles-lista">
             <button type="button" class="rol-item${sel === "coord" ? " activo" : ""}" data-rol="coord" style="--c:#ee712a"><i></i><span><b>Coordinación del PAC</b><small>${C.admins.length} cuentas · lo edita todo</small></span></button>
-            ${S.roles.map((r) => `<button type="button" class="rol-item${sel && sel.id === r.id ? " activo" : ""}" data-rol="${r.id}" style="--c:${esc(r.color)}"><i></i><span>${esc(r.nombre)}<small>${r.miembros.length} ${r.miembros.length === 1 ? "persona" : "personas"} · ${r.apartados.length} ${r.apartados.length === 1 ? "apartado" : "apartados"}</small></span></button>`).join("")}
+            ${S.roles.map((r) => `<button type="button" class="rol-item${sel && sel.id === r.id ? " activo" : ""}" data-rol="${r.id}" style="--c:${esc(r.color)}"><i></i><span>${esc(r.nombre)}<small>${total(r)} ${total(r) === 1 ? "persona" : "personas"} · ${r.apartados.length} ${r.apartados.length === 1 ? "apartado" : "apartados"}</small></span></button>`).join("")}
           </div>
           <button type="button" class="btn primario" id="btnNuevoRol" style="margin-top:10px;width:100%">+ Nuevo rol</button>
         </div>
         <div>${sel === "coord" ? coordinacion() : sel ? rolEd(sel) : '<p class="mini">Elige un rol de la lista para ver quién está y qué apartados edita, o crea uno nuevo.</p>'}</div>
       </div></div>`;
+  }
+  const total = (r) => new Set([...r.miembros, ...(r.miembrosGrupo || []).map((m) => m.email)]).size;
+  // Grupo de Microsoft 365 enlazado: sus personas entran solas (y salen solas) con la sincronización de cada noche
+  function grupoEd(r) {
+    if (!C.grupos) return "";
+    const g = r.grupo_entra || "";
+    return `<h3>Grupo de Microsoft 365</h3>
+      <label class="campo">Las personas de este grupo entran en el rol automáticamente
+        <select id="rolGrupo"><option value="">— Ninguno (solo personas a mano) —</option>${C.grupos.map((x) => `<option value="${esc(x.clave)}"${x.clave === g ? " selected" : ""}>${esc(x.nombre)}</option>`).join("")}</select></label>
+      ${g ? `<div class="personas">${(r.miembrosGrupo || []).map((m) => `<span class="persona" title="${esc(m.email)}">${esc(m.nombre || m.email)}</span>`).join("") || '<span class="mini">El grupo no tiene a nadie todavía.</span>'}</div>
+      <p class="mini">Se actualiza cada noche desde Microsoft 365. Para quitar a alguien de aquí, hay que sacarlo del grupo.</p>` : ""}`;
   }
   const personas = (lista, attr) => `<div class="personas">${lista.map((e) => `<span class="persona">${esc(e)}<button type="button" ${attr}="${esc(e)}" title="Quitar">×</button></span>`).join("") || '<span class="mini">Nadie todavía.</span>'}</div>`;
   const altaPersona = (id) => `<div class="alta-persona"><input id="${id}" placeholder="nombre.apellido@salesianas.org (puedes pegar varios)"><button type="button" class="btn primario" data-alta="${id}">Añadir</button></div>`;
@@ -149,7 +160,8 @@
       </div>
       <label class="campo" style="margin-top:10px">Descripción (opcional)<textarea id="rolDesc">${esc(r.descripcion || "")}</textarea></label>
       <div class="acciones" style="display:flex;gap:8px;margin:10px 0"><button type="button" class="btn primario" id="btnGuardarRol">Guardar nombre y color</button><button type="button" class="btn peligro" id="btnBorrarRol">Borrar rol</button></div>
-      <h3>Personas</h3>${personas(r.miembros, "data-quitar")}${altaPersona("altaMiembro")}
+      ${grupoEd(r)}
+      <h3>${C.grupos && r.grupo_entra ? "Además, personas a mano" : "Personas"}</h3>${personas(r.miembros, "data-quitar")}${altaPersona("altaMiembro")}
       <h3>Apartados que edita <span class="mini" style="text-transform:none;letter-spacing:0">(PAC ${esc(S.curso.nombre)})</span></h3>
       <ul class="arbol-check">${S.T.lista.map((n) => {
         const h = heredado(n);
@@ -318,7 +330,7 @@
       return hacer(() => A().api.guardarRol({ id: rol.id, nombre, color: document.getElementById("rolColor").value, descripcion: document.getElementById("rolDesc").value.trim() }), "Rol guardado");
     }
     if (t.closest("#btnBorrarRol")) {
-      if (!(await A().confirmar("Borrar el rol", `Las ${rol.miembros.length} personas de «${esc(rol.nombre)}» dejarán de poder editar sus apartados (el contenido no se borra).`, "Borrar rol", true))) return;
+      if (!(await A().confirmar("Borrar el rol", `Las ${total(rol)} personas de «${esc(rol.nombre)}» dejarán de poder editar sus apartados (el contenido no se borra).`, "Borrar rol", true))) return;
       C.rolSel = null; return hacer(() => A().api.borrarRol(rol.id), "Rol borrado");
     }
     const alta = t.closest("[data-alta]");
@@ -348,6 +360,10 @@
     if (cc) { const caja = cc.closest("[data-curso]"); return accionCurso(Number(caja.dataset.curso), cc.dataset.c, caja); }
   });
   document.getElementById("vAdmin").addEventListener("change", async (e) => {
+    if (e.target.id === "rolGrupo") {
+      const rol = A().S.roles.find((r) => r.id === C.rolSel);
+      return hacer(() => A().api.guardarRol({ id: rol.id, nombre: rol.nombre, color: rol.color, descripcion: rol.descripcion, grupo_entra: e.target.value }), "Grupo enlazado");
+    }
     const t = e.target.closest("[data-ap-rol]");
     if (!t) return;
     const rol = A().S.roles.find((r) => r.id === C.rolSel);
